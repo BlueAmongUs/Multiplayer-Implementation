@@ -1,14 +1,4 @@
-#undef UNICODE
-
-#define WIN32_LEAN_AND_MEAN
-
-#include <windows.h>
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <stdlib.h>
-#include <stdio.h>
-
-#include "response.h"
+#include "http.h"
 
 // Need to link with Ws2_32.lib
 #pragma comment (lib, "Ws2_32.lib")
@@ -19,81 +9,19 @@ const char* DEFAULT_PORT = "3000";
 
 int __cdecl main(void)
 {
-    WSADATA wsaData;
+    SOCKET ClientSocket = INVALID_SOCKET;
+    int iret = initServer(DEFAULT_PORT, &ClientSocket);
     int iResult;
 
-    SOCKET ServerSocket = INVALID_SOCKET;
-    SOCKET ClientSocket = INVALID_SOCKET;
+    if (iret == 1) {
+        return iret;
+    };
 
-    struct addrinfo* result = NULL;
-    struct addrinfo hints;
 
     int iSendResult;
     char recvbuf[DEFAULT_BUFLEN];
     int recvbuflen = DEFAULT_BUFLEN;
-
-    // Initialize Winsock
-    iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-    if (iResult != 0) {
-        printf("WSAStartup failed with error: %d\n", iResult);
-        return 1;
-    }
-
-    ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_protocol = IPPROTO_TCP;
-    hints.ai_flags = AI_PASSIVE;
-
-    // Resolve the server address and port
-    iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
-    if (iResult != 0) {
-        printf("getaddrinfo failed with error: %d\n", iResult);
-        WSACleanup();
-        return 1;
-    }
-
-    // Create a SOCKET for the server to listen for client connections.
-    ServerSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-    if (ServerSocket == INVALID_SOCKET) {
-        printf("socket failed with error: %ld\n", WSAGetLastError());
-        freeaddrinfo(result);
-        WSACleanup();
-        return 1;
-    }
-
-    // Setup the TCP listening socket
-    iResult = bind(ServerSocket, result->ai_addr, (int)result->ai_addrlen);
-    if (iResult == SOCKET_ERROR) {
-        printf("bind failed with error: %d\n", WSAGetLastError());
-        freeaddrinfo(result);
-        closesocket(ServerSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    freeaddrinfo(result);
-
-    iResult = listen(ServerSocket, SOMAXCONN);
-    if (iResult == SOCKET_ERROR) {
-        printf("listen failed with error: %d\n", WSAGetLastError());
-        closesocket(ServerSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    // Accept a client socket
-    ClientSocket = accept(ServerSocket, NULL, NULL);
-    if (ClientSocket == INVALID_SOCKET) {
-        printf("accept failed with error: %d\n", WSAGetLastError());
-        closesocket(ServerSocket);
-        WSACleanup();
-        return 1;
-    }
-
-    // No longer need server socket
-    closesocket(ServerSocket);
-
+    
     // Receive until the peer shuts down the connection
     do {
         iResult = recv(ClientSocket, recvbuf, recvbuflen, 0);
