@@ -58,7 +58,6 @@ int __cdecl main(void)
         return 1;
     }
 
-
     // cleanup
     closesocket(ClientSocket);
     WSACleanup();
