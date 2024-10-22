@@ -1,0 +1,21 @@
+#status {
+    width: 1em;
+    height: 1em;
+    border-radius: 50%;
+    font-size: 1em;
+    color:#fff;
+    background-color: grey;
+    color: black;
+    display: inline-block;
+    transition: 250ms;
+}
+
+#status.activate {
+    background-color: green;
+}
+#status.inactivate {
+    background-color: red;
+}
+#status.error {
+    background-color: orangered;
+}
