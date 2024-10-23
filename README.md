@@ -4,7 +4,7 @@
 # Server
 
 Client Port: 3000
-Websocket Port: 5500
+Websocket Port: 7000
 
 Implemented using:
 - C/C++(Visual Studio) server/Multiplayer-Server

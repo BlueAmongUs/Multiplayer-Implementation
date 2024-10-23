@@ -44,13 +44,13 @@ int onReceive(SOCKET socket, char* buffer, int len, int flags)
 	return result;
 }
 
-int initServer(const char* port, SOCKET* client_socket)
+int initServer(HTTPServer* server)
 {
 	WSADATA wsaData;
 	int iResult;
 
 	SOCKET ServerSocket = INVALID_SOCKET;
-    *client_socket = INVALID_SOCKET;
+    server->client_socket = INVALID_SOCKET;
 
 	struct addrinfo* result = NULL;
 	struct addrinfo hints;
@@ -69,7 +69,7 @@ int initServer(const char* port, SOCKET* client_socket)
     hints.ai_flags = AI_PASSIVE;
 
     // Resolve the server address and port
-    iResult = getaddrinfo(NULL, port, &hints, &result);
+    iResult = getaddrinfo(NULL, server->port, &hints, &result);
     if (iResult != 0) {
         printf("getaddrinfo failed with error: %d\n", iResult);
         WSACleanup();
@@ -77,55 +77,75 @@ int initServer(const char* port, SOCKET* client_socket)
     }
 
     // Create a SOCKET for the server to listen for client connections.
-    ServerSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    ServerSocket = createSocket(result);
     if (ServerSocket == INVALID_SOCKET) {
-        printf("socket failed with error: %ld\n", WSAGetLastError());
         freeaddrinfo(result);
-        WSACleanup();
-        return 1;
+        return onServerError(server, "Socket failed!");
     }
 
     // Setup the TCP listening socket
     iResult = bind(ServerSocket, result->ai_addr, (int)result->ai_addrlen);
     if (iResult == SOCKET_ERROR) {
-        printf("bind failed with error: %d\n", WSAGetLastError());
-        freeaddrinfo(result);
-        closesocket(ServerSocket);
-        WSACleanup();
-        return 1;
+        return onServerError(server, "Bind failed!");
     }
 
     freeaddrinfo(result);
 
     iResult = listen(ServerSocket, SOMAXCONN);
     if (iResult == SOCKET_ERROR) {
-        printf("listen failed with error: %d\n", WSAGetLastError());
-        closesocket(ServerSocket);
-        WSACleanup();
-        return 1;
+        return onServerError(server, "Listen failed!");
     }
 
 
     // Accept a client socket
-    *client_socket = accept(ServerSocket, NULL, NULL);
-    if (*client_socket == INVALID_SOCKET) {
-        printf("accept failed with error: %d\n", WSAGetLastError());
-        closesocket(ServerSocket);
-        WSACleanup();
-        return 1;
+    server->client_socket = accept(ServerSocket, NULL, NULL);
+    if (server->client_socket == INVALID_SOCKET) {
+        return onServerError(server, "Accept failed!");
     }
 
     // No longer need server socket
     closesocket(ServerSocket);
+    server->wsa_data = &wsaData;
 
 	return 0;
 }
 
-HTTPServer makeServer()
+HTTPServer createServer(const char* port)
 {
-	HTTPServer server;
-	server.socket = INVALID_SOCKET;
-	SOCKET self_socket = INVALID_SOCKET;
+    HTTPServer http_server = {};
+    http_server.client_socket = INVALID_SOCKET;
+    http_server.port = port;
+    http_server.wsa_data = NULL;
+    return http_server;
+}
 
-	return HTTPServer();
+SOCKET createSocket(addrinfo* address_info)
+{
+    return socket(
+        address_info->ai_family, 
+        address_info->ai_socktype, 
+        address_info->ai_protocol
+    );
+}
+
+int closeServer(HTTPServer* server)
+{
+    int close_code = 0;
+    if (server->client_socket != INVALID_SOCKET) {
+        closesocket(server->client_socket);
+    }
+    else {
+        close_code = 1;
+    }
+    WSACleanup();
+    return close_code;
+}
+
+int onServerError(HTTPServer* server, const char* msg)
+{
+    string errmsg = msg;
+    errmsg.append("  %d\n");
+    printf(errmsg.c_str(), WSAGetLastError());
+    closeServer(server);
+    return 1;
 }

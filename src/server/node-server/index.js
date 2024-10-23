@@ -4,7 +4,7 @@ import { WebSocketServer } from "ws";
 
 const server = express();
 const websocket = new WebSocketServer({
-    port: 5500
+    port: 7000
 });
 
 const root = "../..";

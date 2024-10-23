@@ -10,6 +10,12 @@
 <body>
     <h1>Multiplayer Implementation</h1>
     <div>
+        <p>ws://localhost:7000/</p>
+        <button type="button" id="connector">Connect</button>
+    </div>
+    <br>
+    <br>
+    <div>
         Websocket Activity:
         <span id="status"></span>
     </div>
@@ -17,5 +23,16 @@
     <canvas id="canvas">
         Your browser doesn't support canvas
     </canvas>
+    <br>
+    <form>
+        <label for="">Text: </label>
+        <input type="text" name="Input chat" id="inputchat">
+        <input type="button" value="send" id="sendchat">
+    </form>
+    <div>
+        Chat
+        <br>
+        <ul id="chat"></ul>
+    </div>
 </body>
 </html>

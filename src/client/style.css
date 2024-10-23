@@ -1,3 +1,9 @@
+:root {
+    -webkit-user-select: none; /* Safari */
+    -ms-user-select: none; /* IE 10 and IE 11 */
+    user-select: none;
+}
+
 #status {
     width: 1em;
     height: 1em;
@@ -14,8 +20,25 @@
     background-color: green;
 }
 #status.inactivate {
-    background-color: red;
+    background-color: grey;
 }
 #status.error {
-    background-color: orangered;
+    background-color: red;
+}
+
+#connector {
+    font-size: 1em;
+    transition: 250ms;
+}
+
+#canvas {
+    border: 1px solid black;
+}
+
+#chat {
+    display: inline-block;
+    border: 1px solid black;
+    padding-right: 1em;
+    min-width: 10rem;
+    min-height: 2rem;
 }

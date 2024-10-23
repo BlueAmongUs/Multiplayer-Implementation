@@ -8,5 +8,5 @@
 using std::string;
 using std::map;
 
-map<string, string> parseHTTPHeader(string http_header);
-
+map<string, string> parseHTTPMessage(string http_header);
+string readFile(string path);
