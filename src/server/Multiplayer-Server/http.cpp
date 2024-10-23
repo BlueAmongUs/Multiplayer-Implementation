@@ -38,7 +38,7 @@ int onReceive(HTTPServer* server, char* buffer, int len, int flags)
 	int sendlen = 0;
 	string str_res = createResponse(&sendlen);
 	const char* response = str_res.c_str();
-	std::cout << "Response" << response << std::endl;
+	std::cout << "Response: " << std::endl << response << std::endl;
 
 	int result = send(server->client_socket, response, sendlen, flags);
 	return result;
@@ -104,7 +104,6 @@ int initServer(HTTPServer* server)
 
     // No longer need server socket
     closesocket(ServerSocket);
-    server->wsa_data = &wsaData;
 
 	return 0;
 }
@@ -114,7 +113,6 @@ HTTPServer createServer(const char* port)
     HTTPServer http_server = {};
     http_server.client_socket = INVALID_SOCKET;
     http_server.port = port;
-    http_server.wsa_data = NULL;
     return http_server;
 }
 
@@ -142,7 +140,7 @@ int closeServer(HTTPServer* server)
 
 int onServerError(HTTPServer* server, const char* msg)
 {
-    std::cout << msg << "  " << WSAGetLastError() << std::endl;
+    std::cout << msg << " " << WSAGetLastError() << std::endl;
     closeServer(server);
     return 1;
 }

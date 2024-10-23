@@ -15,7 +15,6 @@ struct HTTPServer
 {
 	SOCKET client_socket;
 	const char* port;
-	WSAData* wsa_data;
 };
 
 int onReceive(HTTPServer* server, char* buf, int len, int flags);
