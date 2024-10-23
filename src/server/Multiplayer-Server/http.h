@@ -11,14 +11,14 @@
 #include <stdio.h>
 #include <WinSock2.h>
 
-int onReceive(SOCKET socket, char* buf, int len, int flags);
-
 struct HTTPServer
 {
 	SOCKET client_socket;
 	const char* port;
 	WSAData* wsa_data;
 };
+
+int onReceive(HTTPServer* server, char* buf, int len, int flags);
 
 int initServer(HTTPServer* server);
 

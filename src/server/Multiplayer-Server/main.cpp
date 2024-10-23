@@ -24,7 +24,7 @@ int __cdecl main(void)
 		if (iResult > 0) {
 			printf("Bytes received: %d\n", iResult);
 			// Echo the buffer back to the sender
-			iSendResult = onReceive(server.client_socket, recvbuf, iResult, 0);
+			iSendResult = onReceive(&server, recvbuf, iResult, 0);
 			if (iSendResult == SOCKET_ERROR) {
 				return onServerError(&server, "Send failed!");
 			}

@@ -19,7 +19,7 @@ const char* response_head = "HTTP/1.1 200 OK\r\n"
 "Content-Type: text/html\r\n"
 "Content-Length: ";
 
-string createResponse(int* sendlen) {
+static string createResponse(int* sendlen) {
 	string response = response_head;
 	string body = response_body;
 
@@ -33,14 +33,14 @@ string createResponse(int* sendlen) {
 	return response;
 }
 
-int onReceive(SOCKET socket, char* buffer, int len, int flags)
+int onReceive(HTTPServer* server, char* buffer, int len, int flags)
 {
 	int sendlen = 0;
-	string strresponse = createResponse(&sendlen);
-	const char* response = strresponse.c_str();
-	std::cout << response << std::endl;
+	string str_res = createResponse(&sendlen);
+	const char* response = str_res.c_str();
+	std::cout << "Response" << response << std::endl;
 
-	int result = send(socket, response, sendlen, flags);
+	int result = send(server->client_socket, response, sendlen, flags);
 	return result;
 }
 
@@ -58,7 +58,7 @@ int initServer(HTTPServer* server)
     // Initialize Winsock
     iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
     if (iResult != 0) {
-        printf("WSAStartup failed with error: %d\n", iResult);
+        std::cout << "WSAStartup failed iwht error " << iResult << std::endl;
         return 1;
     }
 
@@ -71,7 +71,7 @@ int initServer(HTTPServer* server)
     // Resolve the server address and port
     iResult = getaddrinfo(NULL, server->port, &hints, &result);
     if (iResult != 0) {
-        printf("getaddrinfo failed with error: %d\n", iResult);
+        std::cout << "getaddrinfo failed with error: " << iResult << std::endl;
         WSACleanup();
         return 1;
     }
@@ -85,11 +85,10 @@ int initServer(HTTPServer* server)
 
     // Setup the TCP listening socket
     iResult = bind(ServerSocket, result->ai_addr, (int)result->ai_addrlen);
+    freeaddrinfo(result);
     if (iResult == SOCKET_ERROR) {
         return onServerError(server, "Bind failed!");
     }
-
-    freeaddrinfo(result);
 
     iResult = listen(ServerSocket, SOMAXCONN);
     if (iResult == SOCKET_ERROR) {
@@ -143,9 +142,7 @@ int closeServer(HTTPServer* server)
 
 int onServerError(HTTPServer* server, const char* msg)
 {
-    string errmsg = msg;
-    errmsg.append("  %d\n");
-    printf(errmsg.c_str(), WSAGetLastError());
+    std::cout << msg << "  " << WSAGetLastError() << std::endl;
     closeServer(server);
     return 1;
 }
